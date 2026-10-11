@@ -1,0 +1,121 @@
+==============================================================
+ HẬU STORE - QUẢN LÝ KHO HÀNG
+ Hướng dẫn cài đặt & dùng
+==============================================================
+
+FILE TRONG GÓI:
+  1) kho-hang.html         -> app (mở bằng trình duyệt, chạy được Android/iOS/Mac)
+  2) google-apps-script.gs -> đoạn code cho Google Sheet (tuỳ chọn, bật đồng bộ online)
+
+
+--------------------------------------------------------------
+PHẦN 1 - CÀI APP (không cần cài đặt gì thêm)
+--------------------------------------------------------------
+Android (16/17):
+  - Tải file kho-hang.html về máy
+  - Mở bằng Chrome -> menu ⋮ -> "Thêm vào màn hình chính"
+  - Từ đó mở như 1 app bình thường
+
+iPhone / iPad (iOS):
+  - Mở file bằng Safari (Files -> kho-hang.html -> Dùng Safari mở)
+  - Share -> "Thêm vào màn hình chính"
+
+Mac:
+  - Mở file bằng Chrome hoặc Safari, bấm đúp là chạy
+
+Lưu ý quan trọng:
+  + Dữ liệu LƯU TRÊN THIẾT BỊ (trình duyệt) -> nên xuất Excel backup
+    hoặc bật Google Sheet (Phần 2) để dữ liệu tập trung 1 chỗ,
+    máy nào mở cũng thấy.
+
+
+--------------------------------------------------------------
+PHẦN 2 - DÙNG
+--------------------------------------------------------------
+Tab NHẬP:  Tên SP * , Nhà cung cấp, IMEI, Giá nhập *, Thời gian nhập *, Ghi chú
+           -> "Lưu vào kho"
+           + Nhập xong form giữ sẵn Tên SP + NCC để nhập loạt cho nhanh
+           + IMEI trùng sẽ hỏi lại trước khi lưu
+
+Tab XUẤT:  Nhập IMEI -> tự gợi ý SP còn trong kho
+           Khách hàng, SĐT, Bảo hành (tháng), Giá xuất *, Thời gian xuất *, Ghi chú
+           -> "Xuất & trừ kho"
+           + Tự trừ tồn kho, tự lưu lịch sử xuất, hiện hạn BH + lãi dự kiến
+           + IMEI chưa có trong kho: app CHẶN trước, muốn vẫn ghi thì bấm
+             "Vẫn ghi nhận xuất ngoài kho" (không trừ tồn)
+
+Tab KHO:   Tồn kho / Lịch sử nhập / Lịch sử xuất + ô tìm kiếm (tên, IMEI, SĐT...)
+           Bấm 1 thẻ để xem chi tiết, bấm "Xóa bản ghi" (bấm 2 lần để xác nhận)
+
+Tab CÀI ĐẶT: Excel backup + đồng bộ Google Sheet (phần dưới)
+
+
+--------------------------------------------------------------
+PHẦN 3 - BACKUP EXCEL (dùng ngay, không cần gì thêm)
+--------------------------------------------------------------
+  Cài đặt -> "Xuất Excel"  => file .xlsx gồm 3 sheet:
+      Nhap   : toàn bộ dữ liệu nhập
+      Xuat    : toàn bộ dữ liệu xuất (có cột Lãi, Mã liên kết)
+      TonKho : hàng còn tồn tại tại thời điểm xuất file
+  Cài đặt -> "Nhập Excel"  => khôi phục/ghép dữ liệu từ file .xlsx
+
+
+--------------------------------------------------------------
+PHẦN 4 - ĐỒNG BỘ GOOGLE SHEET (khuyến nghị, làm 1 lần ~3 phút)
+--------------------------------------------------------------
+Bước 1. Tạo 1 Google Sheet mới, đặt tên ví dụ: "Hau Store - Kho Hang"
+        (sheets.google.com -> Blank spreadsheet)
+
+Bước 2. Trong Sheet: menu Extensions -> Apps Script
+
+Bước 3. Xóa hết nội dung mặc định trong trang sửa code,
+        dán TOÀN BỘ nội dung file google-apps-script.gs vào -> Lưu (Ctrl+S)
+
+Bước 4. Deploy -> New deployment
+        - bấm biểu tượng ⚙️ -> chọn "Web app"
+        - Description: kho-hang (điền gì cũng được)
+        - Execute as: Me (email của anh)
+        - Who has access: Anyone          <<< QUAN TRỌNG
+        -> Deploy -> Google hỏi quyền: Advanced -> Go to project -> Allow
+        -> Copy đoạn URL kết thúc bằng /exec
+
+Bước 5. Vào app -> tab CÀI ĐẶT -> dán URL vào ô Google Apps Script URL
+        -> bấm "Kiểm tra" (thông báo "Kết nối OK" = thành công,
+           2 sheet Nhap/Xuat tự动生成 trong Google Sheet)
+        - "Đẩy lên"  = gửi dữ liệu máy này lên Sheet
+        - "Tải về"   = kéo toàn bộ dữ liệu từ Sheet về máy
+          (dùng khi mở app trên máy mới -> bấm Tải về là có đủ kho)
+
+Sau đó: mỗi lần Nhập/Xuất/Xóa trong app -> TỰ ĐỘNG đẩy lên Sheet.
+Mở Sheet ra là thấy đủ 2 tab Nhap + Xuat, xem được mọi nơi, mọi máy.
+
+
+--------------------------------------------------------------
+PHẦN 5 - LƯU Ý & XỬ LÝ SỰ CỐ
+--------------------------------------------------------------
++ KHÔNG chia sẻ URL .../exec cho người lạ: ai có URL này đều ghi/xem được
+  dữ liệu của anh. (Muốn chắc ăn thêm: Sheet -> Share -> Restricted)
+
++ Sửa code google-apps_script xong -> phải Deploy lại:
+  Deploy -> Manage deployments -> biểu tượng ✏️ -> Version: New version -> Deploy
+
++ "Không kết soát được Google":
+   - URL phải đúng dạng https://script.google.com/macros/s/.../exec (không có ? gì cả)
+   - Kiểm tra lại Who has access: Anyone (không phải "Only myself")
+   - Bấm "Kiểm tra" trước khi dùng
+
++ "URL không đúng dạng": paste thiếu hoặc thừa ký tự -> copy lại nguyên văn
+
++ Lần đầu deploy, Google có thể hiện trang xác nhận quyền -> vào thẳng
+  lại URL .../exec 1 lần là ổn.
+
++ Giữ file backup Excel định kỳ (tuần/lần nhập hàng lớn).
+
++ Sửa dữ liệu: nên sửa TRONG APP rồi để tự sync. Sửa trực tiếp trên
+  Google Sheet cũng được, nhưng khi 2 bên khác nhau thì Sheet thắng
+  cho bản ghi đã đồng bộ.
+
++ Số điện thoại: khi sửa trên Google Sheet, giữ cột "Số điện thoại"
+  dạng Text (định dạng -> Số thập phân) để không mất số 0 đầu.
+
+==============================================================

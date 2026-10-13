@@ -47,6 +47,13 @@ Tab XUẤT:  Nhập IMEI -> tự gợi ý SP còn trong kho
 Tab KHO:   Tồn kho / Lịch sử nhập / Lịch sử xuất + ô tìm kiếm (tên, IMEI, SĐT...)
            Bấm 1 thẻ để xem chi tiết, bấm "Xóa bản ghi" (bấm 2 lần để xác nhận)
 
+Tab BÁO CÁO:
+           Chọn kỳ: 7 ngày / Tháng này / Tháng trước -> hiện ngay:
+           Doanh thu · Giá vốn · Lợi nhuận · Số máy bán,
+           sản phẩm lãi nhất, doanh thu theo ngày,
+           bấm "Xuất báo cáo Excel" (4 sheet: BaoCao, ChiTiet, TheoSP, TheoNgay)
+           Lãi = giá xuất − giá nhập; hàng "ngoài kho" chỉ tính doanh thu (chưa có giá vốn)
+
 Tab CÀI ĐẶT: Excel backup + đồng bộ Google Sheet (phần dưới)
 
 

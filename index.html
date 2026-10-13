@@ -126,6 +126,14 @@ button.link.warn { color: var(--amber); }
 
 .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 26px 10px; }
 
+/* báo cáo */
+.stats.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rep-label { display: block; font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+.li-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--border); font-size: 14px; }
+.li-row:last-child { border-bottom: none; }
+.li-row .sub { font-size: 12px; color: var(--muted); }
+.li-row b.num { font-weight: 800; }
+
 /* settings */
 .set-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
 .set-row .info { font-size: 13.5px; color: var(--muted); }
@@ -294,6 +302,34 @@ nav.bottom button.on .ic { transform: translateY(-1px); }
     <div id="recList"></div>
   </section>
 
+  <!-- ================= BÁO CÁO ================= -->
+  <section class="tab" id="tab-report">
+    <h2 class="tab-title">📊 Báo cáo lợi nhuận</h2>
+    <div class="seg" id="reportSeg">
+      <button data-period="7d" class="on">7 ngày</button>
+      <button data-period="this">Tháng này</button>
+      <button data-period="last">Tháng trước</button>
+    </div>
+    <div class="hint" id="reportRange" style="margin-bottom:8px"></div>
+    <div class="stats grid2">
+      <div class="stat"><div class="v" id="rep-revenue">0₫</div><div class="l">Doanh thu</div></div>
+      <div class="stat"><div class="v" id="rep-cogs">0₫</div><div class="l">Giá vốn</div></div>
+      <div class="stat"><div class="v" id="rep-profit">0₫</div><div class="l">Lợi nhuận</div></div>
+      <div class="stat"><div class="v" id="rep-units">0</div><div class="l">Số máy bán</div></div>
+    </div>
+    <div class="warn-banner" id="report-warn"></div>
+    <div class="card">
+      <span class="rep-label">🏆 Sản phẩm lãi nhất</span>
+      <div id="report-products"></div>
+    </div>
+    <div class="card">
+      <span class="rep-label">📅 Doanh thu theo ngày</span>
+      <div id="report-days"></div>
+    </div>
+    <button class="btn ghost" id="btn-report-excel">⬇️ Xuất báo cáo Excel</button>
+    <div class="hint">Lợi nhuận = giá xuất − giá nhập. Hàng "ngoài kho" chưa có giá vốn nên chỉ tính vào doanh thu.</div>
+  </section>
+
   <!-- ================= CÀI ĐẶT ================= -->
   <section class="tab" id="tab-settings">
     <h2 class="tab-title">⚙️ Cài đặt &amp; dữ liệu</h2>
@@ -344,6 +380,7 @@ nav.bottom button.on .ic { transform: translateY(-1px); }
   <button data-tab="tab-import" class="on"><span class="ic">📥</span>Nhập</button>
   <button data-tab="tab-export"><span class="ic">📤</span>Xuất</button>
   <button data-tab="tab-stock"><span class="ic">📦</span>Kho</button>
+  <button data-tab="tab-report"><span class="ic">📊</span>Báo cáo</button>
   <button data-tab="tab-settings"><span class="ic">⚙️</span>Cài đặt</button>
 </nav>
 
@@ -959,6 +996,125 @@ t.sheetStubs=true}if(t.type=="array"){t.type="binary";var a=xk(e,t);t.type="arra
     return { state: st, added: added };
   }
 
+  /* ---------- báo cáo lợi nhuận ---------- */
+  function startOfDay(ms) {
+    var d = new Date(Number(ms));
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  }
+
+  /* Kỳ báo cáo: '7d' (7 ngày kể cả hôm nay) | 'this' (tháng này) | 'last' (tháng trước)
+   * -> { key, from (bao gồm), to (loại trừ), label } */
+  function periodRange(key, nowMs) {
+    nowMs = Number(nowMs) || Date.now();
+    var now = new Date(nowMs);
+    var y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+    var from, to;
+    if (key === '7d') {
+      from = new Date(y, m, d - 6).getTime();
+      to = new Date(y, m, d + 1).getTime();
+      return { key: '7d', from: from, to: to,
+        label: '7 ngày (' + formatDate(from) + ' - ' + formatDate(to - 1) + ')' };
+    }
+    if (key === 'last') {
+      from = new Date(y, m - 1, 1).getTime();
+      to = new Date(y, m, 1).getTime();
+      return { key: 'last', from: from, to: to,
+        label: 'Tháng trước (' + formatDate(from) + ' - ' + formatDate(to - 1) + ')' };
+    }
+    from = new Date(y, m, 1).getTime();
+    to = new Date(y, m + 1, 1).getTime();
+    return { key: 'this', from: from, to: to,
+      label: 'Tháng này (' + formatDate(from) + ' - ' + formatDate(to - 1) + ')' };
+  }
+
+  /* Tổng hợp báo cáo trong kỳ [from, to):
+   * - Lãi chỉ tính với hàng có giá nhập (liên kết); hàng ngoài kho tính doanh thu riêng
+   * - revenue = profit + cogs + unknownRevenue */
+  function buildReport(state, from, to) {
+    from = Number(from) || 0;
+    to = Number(to) || Date.now() + 1;
+    var inById = {};
+    insOf(state).forEach(function (r) { inById[r.id] = r; });
+
+    var outs = outsOf(state).filter(function (o) { return o.ts >= from && o.ts < to; });
+    var revenue = 0, cogs = 0, profit = 0, unknownRevenue = 0;
+    var prodMap = {}, dayMap = {};
+
+    outs.forEach(function (o) {
+      var price = o.price || 0;
+      revenue += price;
+      var cost = (o.linkId && inById[o.linkId]) ? inById[o.linkId].price : null;
+      var p = 0;
+      if (cost === null) {
+        unknownRevenue += price;
+      } else {
+        cogs += cost;
+        p = price - cost;
+        profit += p;
+      }
+      var pname = trim(o.name) || '(không rõ tên)';
+      var pk = pname.toLowerCase();
+      if (!prodMap[pk]) prodMap[pk] = { name: pname, sold: 0, revenue: 0, profit: 0, unknown: 0 };
+      prodMap[pk].sold++;
+      prodMap[pk].revenue += price;
+      prodMap[pk].profit += p;
+      if (cost === null) prodMap[pk].unknown += price;
+
+      var dk = formatDate(o.ts);
+      if (!dayMap[dk]) dayMap[dk] = { day: dk, ts: startOfDay(o.ts), sold: 0, revenue: 0, profit: 0 };
+      dayMap[dk].sold++;
+      dayMap[dk].revenue += price;
+      dayMap[dk].profit += p;
+    });
+
+    var products = Object.keys(prodMap).map(function (k) { return prodMap[k]; })
+      .sort(function (a, b) { return b.profit - a.profit || b.revenue - a.revenue; });
+    var days = Object.keys(dayMap).map(function (k) { return dayMap[k]; })
+      .sort(function (a, b) { return a.ts - b.ts; });
+
+    return {
+      from: from, to: to, units: outs.length,
+      revenue: revenue, cogs: cogs, profit: profit, unknownRevenue: unknownRevenue,
+      products: products, days: days
+    };
+  }
+
+  /* Xuất Excel báo cáo: 4 sheet BaoCao / ChiTiet / TheoSP / TheoNgay */
+  function toReportWorkbook(state, from, to, label) {
+    var r = buildReport(state, from, to);
+    var costById = {};
+    insOf(state).forEach(function (i) { costById[i.id] = i.price; });
+
+    var baoCao = [
+      ['Hậu Store - Báo cáo lợi nhuận'],
+      ['Kỳ', label || ''],
+      ['Từ ngày', formatDate(from), 'Đến ngày', formatDate(to - 1)],
+      ['Doanh thu (₫)', r.revenue],
+      ['Giá vốn (₫)', r.cogs],
+      ['Lợi nhuận (₫)', r.profit],
+      ['Số máy bán', r.units],
+      ['Doanh thu ngoài kho chưa có giá vốn (₫)', r.unknownRevenue]
+    ];
+
+    var chiTiet = [COLS_OUT.slice()];
+    outsOf(state).filter(function (o) { return o.ts >= from && o.ts < to; })
+      .sort(function (a, b) { return b.ts - a.ts; })
+      .forEach(function (o) {
+        chiTiet.push(exportRowOut(o, o.linkId && costById[o.linkId] !== undefined ? costById[o.linkId] : null));
+      });
+
+    var theoSP = [['Sản phẩm', 'Số bán', 'Doanh thu (₫)', 'Lãi (₫)', 'Doanh thu chưa tính giá vốn (₫)']];
+    r.products.forEach(function (p) {
+      theoSP.push([p.name, p.sold, p.revenue, p.profit, p.unknown]);
+    });
+
+    var theoNgay = [['Ngày', 'Số bán', 'Doanh thu (₫)', 'Lãi (₫)']];
+    r.days.forEach(function (x) { theoNgay.push([x.day, x.sold, x.revenue, x.profit]); });
+
+    return { BaoCao: baoCao, ChiTiet: chiTiet, TheoSP: theoSP, TheoNgay: theoNgay };
+  }
+
   /* ---------- filter/tìm kiếm ---------- */
   function matches(rec, q) {
     if (!q) return true;
@@ -1001,6 +1157,7 @@ t.sheetStubs=true}if(t.type=="array"){t.type="binary";var a=xk(e,t);t.type="arra
     markSynced: markSynced, clearTombstones: clearTombstones, mergeServer: mergeServer,
     toWorkbookData: toWorkbookData, fromWorkbookData: fromWorkbookData,
     mergeRecords: mergeRecords, excelKey: excelKey,
+    periodRange: periodRange, buildReport: buildReport, toReportWorkbook: toReportWorkbook,
     matches: matches, normalizeUrl: normalizeUrl, isValidScriptUrl: isValidScriptUrl,
     COLS_IN: COLS_IN, COLS_OUT: COLS_OUT, COLS_STOCK: COLS_STOCK
   };
@@ -1094,7 +1251,7 @@ t.sheetStubs=true}if(t.type=="array"){t.type="binary";var a=xk(e,t);t.type="arra
 
   /* ================= tabs ================= */
   function activateTab(id) {
-    ['tab-import', 'tab-export', 'tab-stock', 'tab-settings'].forEach(function (t) {
+    ['tab-import', 'tab-export', 'tab-stock', 'tab-report', 'tab-settings'].forEach(function (t) {
       var sec = $(t);
       if (sec) sec.classList.toggle('on', t === id);
     });
@@ -1102,6 +1259,7 @@ t.sheetStubs=true}if(t.type=="array"){t.type="binary";var a=xk(e,t);t.type="arra
       b.classList.toggle('on', b.getAttribute('data-tab') === id);
     });
     if (id === 'tab-stock') renderStock();
+    if (id === 'tab-report') renderReport();
     if (id === 'tab-settings') renderSettingsStats();
   }
 
@@ -1264,6 +1422,7 @@ t.sheetStubs=true}if(t.type=="array"){t.type="binary";var a=xk(e,t);t.type="arra
 
   /* ================= STOCK LIST ================= */
   var curSeg = 'stock';
+  var curPeriod = '7d';
 
   function recCard(r) {
     var isIn = r.kind === 'in';
@@ -1602,18 +1761,40 @@ t.sheetStubs=true}if(t.type=="array"){t.type="binary";var a=xk(e,t);t.type="arra
       '-' + p(d.getHours()) + p(d.getMinutes());
   }
 
-  function downloadExcel() {
-    var u8 = excelBytes();
+  function downloadWorkbook(wb, filename) {
+    var u8 = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
     var blob = new Blob([u8], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'kho-hang-' + stamp() + '.xlsx';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     setTimeout(function () {
       try { URL.revokeObjectURL(a.href); } catch (e) {}
       if (a.parentNode) a.parentNode.removeChild(a);
     }, 1500);
+  }
+
+  function downloadExcel() {
+    downloadWorkbook(buildWorkbook(), 'kho-hang-' + stamp() + '.xlsx');
+  }
+
+  function buildReportWorkbook() {
+    var range = core.periodRange(curPeriod);
+    var data = core.toReportWorkbook(state, range.from, range.to, range.label);
+    var wb = XLSX.utils.book_new();
+    var widths = {
+      BaoCao: [42, 24, 16, 14],
+      ChiTiet: [17, 26, 20, 14, 20, 10, 14, 13, 11, 30, 38, 38],
+      TheoSP: [30, 10, 16, 14, 28],
+      TheoNgay: [14, 10, 16, 14]
+    };
+    ['BaoCao', 'ChiTiet', 'TheoSP', 'TheoNgay'].forEach(function (name) {
+      var ws = XLSX.utils.aoa_to_sheet(data[name]);
+      ws['!cols'] = (widths[name] || []).map(function (w) { return { wch: w }; });
+      XLSX.utils.book_append_sheet(wb, ws, name);
+    });
+    return wb;
   }
 
   function workbookToSheets(wb) {
@@ -1648,8 +1829,54 @@ t.sheetStubs=true}if(t.type=="array"){t.type="binary";var a=xk(e,t);t.type="arra
   }
 
   /* ================= render all ================= */
+  function renderReport() {
+    var range = core.periodRange(curPeriod);
+    var rep = core.buildReport(state, range.from, range.to);
+    $('reportRange').textContent = range.label;
+    $('rep-revenue').textContent = core.formatMoney(rep.revenue) + '₫';
+    $('rep-cogs').textContent = core.formatMoney(rep.cogs) + '₫';
+    $('rep-profit').textContent = core.formatMoney(rep.profit) + '₫';
+    $('rep-profit').style.color = rep.profit < 0 ? '#c73b3b' : '#0f7b4f';
+    $('rep-units').textContent = String(rep.units);
+
+    var warn = $('report-warn');
+    if (rep.unknownRevenue > 0) {
+      warn.textContent = '⚠️ ' + core.formatMoney(rep.unknownRevenue) +
+        '₫ doanh thu ngoài kho chưa tính giá vốn';
+      warn.classList.add('show');
+    } else {
+      warn.classList.remove('show');
+    }
+
+    var pb = $('report-products');
+    if (!rep.products.length) {
+      pb.innerHTML = '<div class="empty">Chưa có doanh số trong kỳ</div>';
+    } else {
+      pb.innerHTML = rep.products.slice(0, 8).map(function (p) {
+        return '<div class="li-row"><div><b>' + esc(p.name) + '</b>' +
+          '<div class="sub">Bán ' + p.sold + ' · Doanh thu ' + core.formatMoney(p.revenue) + '₫</div></div>' +
+          '<div style="text-align:right"><b class="num" style="color:' +
+          (p.profit < 0 ? '#c73b3b' : '#0f7b4f') + '">' + core.formatMoney(p.profit) +
+          '₫</b><div class="sub">lãi</div></div></div>';
+      }).join('');
+    }
+
+    var db = $('report-days');
+    if (!rep.days.length) {
+      db.innerHTML = '<div class="empty">Chưa có ngày nào trong kỳ</div>';
+    } else {
+      db.innerHTML = rep.days.slice(-14).reverse().map(function (x) {
+        return '<div class="li-row"><div><b>' + esc(x.day) + '</b>' +
+          '<div class="sub">' + x.sold + ' máy bán</div></div>' +
+          '<div style="text-align:right"><b>' + core.formatMoney(x.revenue) +
+          '₫</b><div class="sub">lãi ' + core.formatMoney(x.profit) + '₫</div></div></div>';
+      }).join('');
+    }
+  }
+
   function renderAll() {
     renderStock();
+    renderReport();
     renderSettingsStats();
     updateBadge();
   }
@@ -1718,6 +1945,25 @@ t.sheetStubs=true}if(t.type=="array"){t.type="binary";var a=xk(e,t);t.type="arra
     });
     $('stockSearch').addEventListener('input', renderStock);
     wireList();
+
+    // báo cáo
+    Array.prototype.forEach.call(document.querySelectorAll('#reportSeg button'), function (b) {
+      b.addEventListener('click', function () {
+        curPeriod = b.getAttribute('data-period');
+        Array.prototype.forEach.call(document.querySelectorAll('#reportSeg button'), function (x) {
+          x.classList.toggle('on', x === b);
+        });
+        renderReport();
+      });
+    });
+    $('btn-report-excel').addEventListener('click', function () {
+      try {
+        downloadWorkbook(buildReportWorkbook(), 'bao-cao-' + stamp() + '.xlsx');
+        toast('✅ Đã xuất báo cáo Excel');
+      } catch (e) {
+        toast('⚠️ Xuất báo cáo lỗi: ' + String(e && e.message));
+      }
+    });
 
     // settings
     $('set-url').value = state.settings.gscriptUrl || '';
@@ -1823,7 +2069,15 @@ t.sheetStubs=true}if(t.type=="array"){t.type="binary";var a=xk(e,t);t.type="arra
       },
       excelBytes: excelBytes,
       excelImportBytes: importFromBytes,
+      reportBytes: function () {
+        return XLSX.write(buildReportWorkbook(), { type: 'array', bookType: 'xlsx' });
+      },
+      setPeriod: function (k) {
+        var btn = document.querySelector('#reportSeg button[data-period="' + k + '"]');
+        if (btn) btn.click();
+      },
       render: renderAll,
+      renderReport: renderReport,
       activateTab: activateTab,
       pendingCount: function () { return core.pendingCount(state); },
       storageOk: function () { return storageOk; },

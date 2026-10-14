@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Hậu Stores · Tạo hoá đơn</title>
+<style>/* Hậu Stores · Hoá đơn — offline */
+:root {
+  --ink: #1c1e26;
+  --muted: #6b7280;
+  --line: #d7d9df;
+  --accent: #3556c9;
+  --ok: #0f7b4f;
+  --warn: #a8361f;
+  --paper: #ffffff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #f2f3f5;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: linear-gradient(135deg, #22307a, #3556c9);
+  color: #fff;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.brand { font-weight: 700; font-size: 17px; }
+.badge {
+  background: rgba(255,255,255,0.22);
+  font-size: 11px; font-weight: 600;
+  border-radius: 999px; padding: 2px 8px; margin-left: 6px;
+  vertical-align: 2px;
+}
+main { max-width: 900px; margin: 0 auto; padding: 14px; display: grid; gap: 14px; }
+.card {
+  background: var(--paper);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+h2 { font-size: 15px; margin-bottom: 12px; display: flex; align-items: baseline; gap: 8px; }
+h2 .hint { font-size: 12px; color: var(--muted); font-weight: 400; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+@media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+.field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+.req { color: var(--warn); }
+.field input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 16px;
+  background: #fff;
+  color: var(--ink);
+}
+.field input:focus { outline: 2px solid rgba(53,86,201,0.25); border-color: var(--accent); }
+.field input.err { border-color: var(--warn); background: #fff5f3; }
+.actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+button {
+  border: 0; border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 15px; font-weight: 600;
+  cursor: pointer;
+  color: #fff;
+}
+button.primary { background: var(--accent); flex: 1; min-width: 150px; }
+button.success { background: var(--ok); flex: 1; min-width: 150px; }
+button.ghost { background: #e8eaef; color: var(--ink); }
+button:active { transform: translateY(1px); }
+
+/* ================= hoá đơn (preview + in + Word) ================= */
+.inv-preview { background: #fff; }
+.empty { color: var(--muted); font-size: 14px; text-align: center; padding: 18px 6px; }
+
+.inv { max-width: 720px; margin: 0 auto; color: #000; background: #fff; }
+.inv-head { text-align: center; }
+.inv-shop { font-size: 24px; font-weight: 800; letter-spacing: 1px; }
+.inv-line-sm { font-size: 12px; color: #333; }
+.inv-title { font-size: 18px; font-weight: 700; margin: 6px 0 2px; }
+.inv-meta { text-align: right; font-size: 12px; margin-bottom: 8px; }
+table { border-collapse: collapse; width: 100%; }
+.inv-info th, .inv-info td { border: 1px solid #000; padding: 6px 8px; font-size: 14px; text-align: left; }
+.inv-info th { width: 110px; background: #f4f4f4; }
+.inv-items th, .inv-items td { border: 1px solid #000; padding: 6px 8px; font-size: 13px; }
+.inv-items th { background: #f4f4f4; }
+.inv-items .c { text-align: center; }
+.inv-items .r { text-align: right; }
+.inv-total td { font-size: 14px; }
+.inv-words td, .inv-note td { padding: 6px 8px; font-size: 13px; }
+.inv-terms { margin-top: 10px; font-size: 12px; color: #222; }
+.inv-thanks { margin-top: 6px; font-size: 12px; font-style: italic; }
+.inv-sign { margin-top: 30px; }
+.inv-sign td { width: 50%; text-align: center; vertical-align: top; height: 72px; font-size: 13px; }
+
+/* ================= lịch sử ================= */
+.hd-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+.hd-row:last-child { border-bottom: 0; }
+.hd-main { flex: 1; min-width: 180px; }
+.hd-main b { display: block; }
+.hd-sub { color: var(--muted); font-size: 12px; }
+.hd-amt { font-weight: 700; white-space: nowrap; }
+.hd-btn {
+  background: #e8eaef; color: var(--ink);
+  padding: 6px 10px; font-size: 12px; border-radius: 8px;
+}
+.hd-btn.danger { color: var(--warn); }
+.foot-note { margin-top: 10px; font-size: 12px; color: var(--muted); }
+
+/* ================= toast ================= */
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+  background: rgba(28,30,38,0.92); color: #fff;
+  padding: 10px 18px; border-radius: 10px;
+  font-size: 14px; opacity: 0; pointer-events: none;
+  transition: all 0.25s ease;
+  max-width: 90vw; text-align: center; z-index: 50;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ================= PRINT: chỉ in khu vực hoá đơn ================= */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+  main { padding: 0; max-width: none; display: block; }
+  .card { box-shadow: none; border-radius: 0; padding: 0; }
+  .card h2 { display: none; }
+  #printArea { display: block !important; }
+  .inv { max-width: none; }
+}
+@page { size: A4; margin: 14mm 16mm; }
+</style>
+</head>
+<body>
+<header class="topbar no-print">
+  <div class="brand">🧾 Hậu Stores · Tạo hoá đơn <span class="badge">Offline</span></div>
+</header>
+
+<main id="appRoot">
+  <!-- ============ FORM ============ -->
+  <section class="card no-print">
+    <h2>Thông tin bán hàng</h2>
+    <div class="grid2">
+      <div class="field">
+        <label>Tên khách hàng <span class="req">*</span></label>
+        <input id="f-name" type="text" maxlength="60" placeholder="Nguyễn Văn A" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Số điện thoại <span class="req">*</span></label>
+        <input id="f-phone" type="tel" maxlength="14" placeholder="0909 123 456" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Tên sản phẩm / mẫu máy <span class="req">*</span></label>
+        <input id="f-product" type="text" maxlength="120" placeholder="iPhone 13 Pro 128GB" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>IMEI (nếu có)</label>
+        <input id="f-imei" type="text" maxlength="32" placeholder="356938117616221" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Giá bán (₫) <span class="req">*</span></label>
+        <input id="f-price" type="text" inputmode="numeric" placeholder="5200000" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Bảo hành (tháng)</label>
+        <input id="f-months" type="number" min="0" max="60" step="1" value="12">
+      </div>
+      <div class="field">
+        <label>Ngày mua</label>
+        <input id="f-date" type="date">
+      </div>
+      <div class="field">
+        <label>Ghi chú</label>
+        <input id="f-note" type="text" maxlength="500" placeholder="Kèm sạc, dán màn hình..." autocomplete="off">
+      </div>
+    </div>
+    <div class="actions">
+      <button id="btn-print" class="primary">🖨 In / Lưu PDF</button>
+      <button id="btn-word" class="success">📄 Xuất Word (.doc)</button>
+      <button id="btn-new" class="ghost">✨ Tạo mới</button>
+    </div>
+  </section>
+
+  <!-- ============ PREVIEW (khu vực in) ============ -->
+  <section class="card">
+    <h2 class="no-print">Xem trước hoá đơn <span class="hint">(khu vực in / xuất Word)</span></h2>
+    <div id="printArea">
+      <div id="invoicePreview" class="inv-preview"><div class="empty">Nhập thông tin bên trên — hoá đơn tự cập nhật từng giây</div></div>
+    </div>
+  </section>
+
+  <!-- ============ LỊCH SỬ ============ -->
+  <section class="card no-print">
+    <h2>Lịch sử hoá đơn <span class="hint">(lưu trên máy này)</span></h2>
+    <div id="hdList"><div class="empty">Chưa có hoá đơn nào được in/xuất</div></div>
+  </section>
+
+  <!-- ============ CÀI ĐẶT MẪU ============ -->
+  <section class="card no-print">
+    <h2>Mẫu hoá đơn (tự lưu khi gõ)</h2>
+    <div class="grid2">
+      <div class="field">
+        <label>Tên cửa hàng</label>
+        <input id="s-shop" type="text" maxlength="160" placeholder="HẬU STORES">
+      </div>
+      <div class="field">
+        <label>SĐT cửa hàng</label>
+        <input id="s-tel" type="text" maxlength="160" placeholder="0909 000 000">
+      </div>
+      <div class="field">
+        <label>Địa chỉ</label>
+        <input id="s-addr" type="text" maxlength="160" placeholder="123 Lê Duẩn, Đà Nẵng">
+      </div>
+      <div class="field">
+        <label>Lời cảm ơn</label>
+        <input id="s-thanks" type="text" maxlength="160">
+      </div>
+      <div class="field" style="grid-column:1/-1">
+        <label>Điều khoản bảo hành</label>
+        <input id="s-terms" type="text" maxlength="160">
+      </div>
+    </div>
+    <div class="foot-note">Muốn về mặc định: xoá dữ liệu trình duyệt hoặc mở app ở chế độ ẩn danh rồi vào lại.</div>
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>/*
+ * Hậu Stores — Tạo hoá đơn (offline) · logic thuần, không DOM.
+ * UMD: AMD/CommonJS/global.
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) {
+    module.exports = factory();
+  } else {
+    root.HoaDon = factory();
+  }
+})(typeof self !== 'undefined' ? self : this, function () {
+  var VERSION = 1;
+  var MAX_NAME = 60;
+  var MAX_PRODUCT = 120;
+  var MAX_IMEI = 32;
+  var MAX_NOTE = 500;
+  var MAX_SETTINGS_TEXT = 160;
+  var LS_SETTINGS = 'haustore_hoadon_settings_v1';
+  var LS_LIST = 'haustore_hoadon_list_v1';
+  var LS_SEQ = 'haustore_hoadon_seq_v1';
+  var MAX_HISTORY = 200;
+
+  var DEFAULT_SETTINGS = {
+    shopName: 'HẬU STORES',
+    address: '',
+    phone: '',
+    terms: 'Máy bảo hành theo tem của cửa hàng. Lỗi phần mềm và ngoại hình không nằm trong diện bảo hành.',
+    thanks: 'Cảm ơn quý khách đã tin tưởng và ủng hộ Hậu Stores!'
+  };
+
+  function trim(s) {
+    return String(s == null ? '' : s).replace(/^\s+|\s+$/g, '');
+  }
+
+  function digits(s) {
+    return trim(s).replace(/\D+/g, '');
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  /* "1200000" | "1.200.000" -> 1200000 | NaN */
+  function parseMoney(s) {
+    if (typeof s === 'number') return isFinite(s) ? s : NaN;
+    var t = trim(s).replace(/[.\s,]/g, '');
+    if (!t || !/^\d+$/.test(t)) return NaN;
+    return Number(t);
+  }
+
+  function formatMoney(n) {
+    var num = Number(n) || 0;
+    return String(Math.round(num)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  function formatDateVN(ms, withTime) {
+    var d = new Date(Number(ms) + 7 * 3600 * 1000);
+    var p = function (x) { return (x < 10 ? '0' : '') + x; };
+    var out = p(d.getUTCDate()) + '/' + p(d.getUTCMonth() + 1) + '/' + d.getUTCFullYear();
+    if (withTime) out += ' ' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes());
+    return out;
+  }
+
+  function addMonths(ms, months) {
+    var d = new Date(ms);
+    var target = new Date(d.getFullYear(), d.getMonth() + Number(months), 1);
+    var last = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+    target.setDate(Math.min(d.getDate(), last));
+    target.setHours(0, 0, 0, 0);
+    return target.getTime();
+  }
+
+  /* Hạn bảo hành = ngày mua + n tháng (mặc định 00:00 giờ máy) */
+  function warrantyUntil(purchaseMs, months) {
+    return addMonths(purchaseMs, Number(months) || 0);
+  }
+
+  /* ---------------- số đọc bằng chữ (tiếng Việt) ---------------- */
+  var UNITS = ['không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
+
+  function read3(n) { // 0..999
+    var h = Math.floor(n / 100);
+    var t = Math.floor((n % 100) / 10);
+    var o = n % 10;
+    var parts = [];
+    if (h > 0) parts.push(UNITS[h] + ' trăm');
+    var r = t * 10 + o;
+    if (r === 0) return parts.join(' ');
+    if (t === 0) {
+      if (h > 0) parts.push('lẻ ' + UNITS[o]);
+      else parts.push(UNITS[o]);
+    } else if (t === 1) {
+      parts.push('mười' + (o === 1 ? ' mốt' : o === 5 ? ' lăm' : (o > 0 ? ' ' + UNITS[o] : '')));
+    } else {
+      parts.push(UNITS[t] + ' mươi' + (o === 1 ? ' mốt' : o === 5 ? ' lăm' : (o > 0 ? ' ' + UNITS[o] : '')));
+    }
+    return parts.join(' ');
+  }
+
+  function amountToWords(n) {
+    var num = Math.floor(Number(n) || 0);
+    if (num === 0) return 'không đồng';
+    if (num < 0) return 'âm ' + amountToWords(-num);
+    var groups = [
+      { v: 1000000000, name: 'tỷ' },
+      { v: 1000000, name: 'triệu' },
+      { v: 1000, name: 'nghìn' }
+    ];
+    var words = [];
+    var rest = num;
+    groups.forEach(function (g) {
+      var cnt = Math.floor(rest / g.v);
+      if (cnt > 0) {
+        words.push(read3(cnt) + ' ' + g.name);
+        rest -= cnt * g.v;
+      }
+    });
+    if (rest > 0) words.push(read3(rest));
+    return words.join(' ') + ' đồng';
+  }
+
+  /* ---------------- số hoá đơn ---------------- */
+  function invoiceNumber(ts, seq) {
+    var d = new Date(Number(ts) + 7 * 3600 * 1000);
+    var p = function (x) { return (x < 10 ? '0' : '') + x; };
+    var ymd = '' + d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate());
+    var tail = (Number(seq) || 1) % 1000;
+    return 'HD' + ymd + '-' + ('00' + tail).slice(-3);
+  }
+
+  /* ---------------- validate + build model ---------------- */
+  /*
+   * input: { name, phone, product, imei, price, months, purchaseDate, note }
+   * purchaseDate: 'YYYY-MM-DD'
+   */
+  function buildInvoice(input, settings, nowMs) {
+    var errors = {};
+    var now = Number(nowMs) || Date.now();
+    input = input || {};
+    var s = {};
+    for (var k in DEFAULT_SETTINGS) {
+      s[k] = trim(settings && settings[k]) || DEFAULT_SETTINGS[k];
+      if (s[k].length > MAX_SETTINGS_TEXT) s[k] = s[k].slice(0, MAX_SETTINGS_TEXT);
+    }
+    if (!trim(input.name)) errors.name = 'Nhập tên khách hàng';
+    else if (trim(input.name).length > MAX_NAME) errors.name = 'Tên quá dài (tối đa ' + MAX_NAME + ' ký tự)';
+
+    var phone = digits(input.phone);
+    if (!phone) errors.phone = 'Nhập số điện thoại';
+    else if (!/^\d{9,11}$/.test(phone)) errors.phone = 'SĐT không hợp lệ (9–11 số)';
+
+    var product = trim(input.product);
+    if (!product) errors.product = 'Nhập tên sản phẩm / mẫu máy';
+    else if (product.length > MAX_PRODUCT) errors.product = 'Tên sản phẩm quá dài';
+
+    var imei = trim(input.imei);
+    if (imei.length > MAX_IMEI) errors.imei = 'IMEI quá dài (tối đa ' + MAX_IMEI + ')';
+
+    var price = parseMoney(input.price);
+    if (isNaN(price) || price < 0) errors.price = 'Nhập giá bán (số, ví dụ 5200000)';
+
+    var months = input.months === '' || input.months == null ? 0 : Number(input.months);
+    if (!isFinite(months) || months < 0 || months > 60 || Math.floor(months) !== months) {
+      errors.months = 'Số tháng bảo hành 0–60';
+      months = 0;
+    }
+
+    var purchaseMs;
+    if (trim(input.purchaseDate)) {
+      purchaseMs = Date.parse(trim(input.purchaseDate) + 'T00:00:00');
+      if (isNaN(purchaseMs)) {
+        var dBad = new Date(now); dBad.setHours(0, 0, 0, 0);
+        purchaseMs = dBad.getTime();
+        errors.purchaseDate = 'Ngày mua không hợp lệ';
+      }
+    } else {
+      // để trống -> mặc định hôm nay
+      var d0 = new Date(now); d0.setHours(0, 0, 0, 0);
+      purchaseMs = d0.getTime();
+    }
+
+    var note = trim(input.note);
+    if (note.length > MAX_NOTE) errors.note = 'Ghi chú quá dài';
+
+    var ok = true;
+    for (var e in errors) { ok = false; break; }
+
+    var model = null;
+    if (ok) {
+      var until = warrantyUntil(purchaseMs, months);
+      model = {
+        version: VERSION,
+        shopName: s.shopName,
+        address: s.address,
+        phone: s.phone,
+        terms: s.terms,
+        thanks: s.thanks,
+        no: invoiceNumber(now, 1),
+        dateLabel: formatDateVN(now, true),
+        customer: { name: trim(input.name), phone: phone },
+        product: {
+          name: product,
+          imei: imei,
+          price: price,
+          months: months,
+          untilLabel: formatDateVN(until, false)
+        },
+        total: price,
+        words: amountToWords(price),
+        note: note
+      };
+    }
+
+    return { ok: ok, errors: errors, model: model };
+  }
+
+  /* ---------------- HTML hoá đơn (dùng cho preview, in, Word) ---------------- */
+  function invoiceHtml(model) {
+    var h = [];
+    h.push('<div class="inv">');
+    h.push('<div class="inv-head">');
+    h.push('<div class="inv-shop">' + esc(model.shopName) + '</div>');
+    if (model.address) h.push('<div class="inv-line-sm">' + esc(model.address) + '</div>');
+    if (model.phone) h.push('<div class="inv-line-sm">SĐT: ' + esc(model.phone) + '</div>');
+    h.push('<div class="inv-title">HOÁ ĐƠN BÁN HÀNG</div>');
+    h.push('<div class="inv-meta">Số: <b>' + esc(model.no) + '</b> &nbsp;·&nbsp; Ngày: ' + esc(model.dateLabel) + '</div>');
+    h.push('</div>');
+
+    h.push('<table class="inv-info">');
+    h.push('<tr><th>Khách hàng</th><td>' + esc(model.customer.name) + '</td>' +
+      '<th>Số điện thoại</th><td>' + esc(model.customer.phone) + '</td></tr>');
+    h.push('</table>');
+
+    h.push('<table class="inv-items">');
+    h.push('<tr><th class="c">STT</th><th>Sản phẩm</th><th>IMEI</th><th class="c">Bảo hành</th>' +
+      '<th class="c">Hạn bảo hành</th><th class="r">Đơn giá</th><th class="r">Thành tiền</th></tr>');
+    h.push('<tr><td class="c">1</td><td>' + esc(model.product.name) + '</td><td>' +
+      (model.product.imei ? esc(model.product.imei) : '—') + '</td><td class="c">' +
+      model.product.months + ' tháng</td><td class="c">' + esc(model.product.untilLabel) +
+      '</td><td class="r">' + formatMoney(model.product.price) + '₫</td><td class="r">' +
+      formatMoney(model.total) + '₫</td></tr>');
+    h.push('<tr class="inv-total"><td colspan="6" class="r"><b>Tổng cộng</b></td><td class="r"><b>' +
+      formatMoney(model.total) + '₫</b></td></tr>');
+    h.push('<tr class="inv-words"><td colspan="7"><i>Bằng chữ: ' + esc(model.words) + '</i></td></tr>');
+    if (model.note) {
+      h.push('<tr class="inv-note"><td colspan="7"><b>Ghi chú:</b> ' + esc(model.note) + '</td></tr>');
+    }
+    h.push('</table>');
+
+    h.push('<div class="inv-terms">' + esc(model.terms) + '</div>');
+    h.push('<div class="inv-thanks">' + esc(model.thanks) + '</div>');
+
+    h.push('<table class="inv-sign">');
+    h.push('<tr><td class="t"><b>Người bán</b></td><td class="t"><b>Người mua</b></td></tr>');
+    h.push('<tr><td class="sp"></td><td class="sp"></td></tr>');
+    h.push('</table>');
+    h.push('</div>');
+    return h.join('');
+  }
+
+  /* ---------------- Word (.doc) wrapper ---------------- */
+  var DOC_CSS = [
+    'body{font-family:"Times New Roman",serif;font-size:13pt;color:#000;}',
+    '.inv{max-width:100%;}',
+    '.inv-head{text-align:center;}',
+    '.inv-shop{font-size:20pt;font-weight:bold;}',
+    '.inv-line-sm{font-size:10.5pt;}',
+    '.inv-title{font-size:16pt;font-weight:bold;margin:6pt 0;text-transform:uppercase;}',
+    '.inv-meta{text-align:right;font-size:10.5pt;}',
+    'table{border-collapse:collapse;width:100%;}',
+    '.inv-info th,.inv-info td{border:1px solid #000;padding:5px 8px;font-size:12pt;}',
+    '.inv-info th{width:110px;}',
+    '.inv-items th,.inv-items td{border:1px solid #000;padding:5px 8px;font-size:12pt;}',
+    '.c{text-align:center;}.r{text-align:right;}.t{text-align:center;}',
+    '.inv-total td{font-size:13pt;}',
+    '.inv-words td{border:1px solid #000;padding:5px 8px;}',
+    '.inv-note td{border:1px solid #000;padding:5px 8px;}',
+    '.inv-terms{margin-top:10px;font-size:11pt;}',
+    '.inv-thanks{margin-top:6px;font-size:11pt;font-style:italic;}',
+    '.inv-sign{margin-top:26px;width:100%;}',
+    '.inv-sign td{width:50%;text-align:center;vertical-align:top;height:70px;}'
+  ].join('\n');
+
+  function buildDocHtml(model) {
+    return '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+      'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+      '<head><meta charset="utf-8"><title>Hoa don ' + esc(model.no) + '</title>' +
+      '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->' +
+      '<style>@page{size:21cm 29.7cm;margin:1.4cm 1.6cm;}\n' + DOC_CSS + '</style></head><body>' +
+      invoiceHtml(model) + '</body></html>';
+  }
+
+  /* ---------------- lịch sử (localStorage thuần) ---------------- */
+  function parseListJson(json) {
+    var out = [];
+    try {
+      var v = JSON.parse(String(json || '[]'));
+      if (Object.prototype.toString.call(v) === '[object Array]') out = v;
+    } catch (e) { out = []; }
+    return out.filter(function (x) {
+      return x && typeof x === 'object' && x.model && typeof x.model === 'object';
+    });
+  }
+
+  function addHistory(list, model, nowMs) {
+    var entry = {
+      no: model.no,
+      ts: Number(nowMs) || Date.now(),
+      customer: model.customer,
+      product: { name: model.product.name, imei: model.product.imei, price: model.product.price },
+      total: model.total,
+      model: model
+    };
+    var out = [entry].concat(list || []);
+    if (out.length > MAX_HISTORY) out = out.slice(0, MAX_HISTORY);
+    return out;
+  }
+
+  return {
+    VERSION: VERSION,
+    MAX_NAME: MAX_NAME,
+    MAX_PRODUCT: MAX_PRODUCT,
+    MAX_IMEI: MAX_IMEI,
+    MAX_NOTE: MAX_NOTE,
+    MAX_SETTINGS_TEXT: MAX_SETTINGS_TEXT,
+    MAX_HISTORY: MAX_HISTORY,
+    LS_SETTINGS: LS_SETTINGS,
+    LS_LIST: LS_LIST,
+    LS_SEQ: LS_SEQ,
+    DEFAULT_SETTINGS: DEFAULT_SETTINGS,
+    trim: trim,
+    digits: digits,
+    esc: esc,
+    parseMoney: parseMoney,
+    formatMoney: formatMoney,
+    formatDateVN: formatDateVN,
+    addMonths: addMonths,
+    warrantyUntil: warrantyUntil,
+    amountToWords: amountToWords,
+    invoiceNumber: invoiceNumber,
+    buildInvoice: buildInvoice,
+    invoiceHtml: invoiceHtml,
+    buildDocHtml: buildDocHtml,
+    parseListJson: parseListJson,
+    addHistory: addHistory
+  };
+});
+</script>
+<script>/* Hậu Stores · Tạo hoá đơn — UI (offline, không network). */
+(function () {
+  var core = window.HoaDon;
+
+  function $(id) { return document.getElementById(id); }
+
+  /* =================== state =================== */
+  var settings = loadSettings();
+  var list = loadList();
+  var seq = loadSeq();
+  var lastModel = null;
+  var showErrors = false;
+
+  function loadSettings() {
+    try {
+      var v = JSON.parse(localStorage.getItem(core.LS_SETTINGS) || '{}');
+      var s = {};
+      for (var k in core.DEFAULT_SETTINGS) {
+        s[k] = typeof v[k] === 'string' ? v[k] : core.DEFAULT_SETTINGS[k];
+      }
+      return s;
+    } catch (e) {
+      var d = {};
+      for (var k2 in core.DEFAULT_SETTINGS) d[k2] = core.DEFAULT_SETTINGS[k2];
+      return d;
+    }
+  }
+
+  function saveSettings() {
+    try { localStorage.setItem(core.LS_SETTINGS, JSON.stringify(settings)); } catch (e) {}
+  }
+
+  function loadList() {
+    return core.parseListJson(localStorage.getItem(core.LS_LIST));
+  }
+
+  function saveList() {
+    try { localStorage.setItem(core.LS_LIST, JSON.stringify(list)); } catch (e) {}
+  }
+
+  function loadSeq() {
+    var n = Number(localStorage.getItem(core.LS_SEQ));
+    return isFinite(n) && n > 0 ? n : 0;
+  }
+
+  function nextNo() {
+    seq += 1;
+    try { localStorage.setItem(core.LS_SEQ, String(seq)); } catch (e) {}
+    return core.invoiceNumber(Date.now(), seq);
+  }
+
+  /* =================== helpers =================== */
+  var FIELD_IDS = {
+    name: 'f-name', phone: 'f-phone', product: 'f-product', imei: 'f-imei',
+    price: 'f-price', months: 'f-months', purchaseDate: 'f-date', note: 'f-note'
+  };
+
+  function todayStr() {
+    var d = new Date(Date.now() + 7 * 3600 * 1000);
+    var p = function (x) { return (x < 10 ? '0' : '') + x; };
+    return d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate());
+  }
+
+  function firstError(errors) {
+    for (var k in errors) return errors[k];
+    return '';
+  }
+
+  var toastTimer = null;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600);
+  }
+
+  function input() {
+    return {
+      name: $('f-name').value,
+      phone: $('f-phone').value,
+      product: $('f-product').value,
+      imei: $('f-imei').value,
+      price: $('f-price').value,
+      months: $('f-months').value,
+      purchaseDate: $('f-date').value,
+      note: $('f-note').value
+    };
+  }
+
+  function paintErrors(errors) {
+    for (var k in FIELD_IDS) {
+      var el = $(FIELD_IDS[k]);
+      if (el) el.classList.toggle('err', !!(showErrors && errors[k]));
+    }
+  }
+
+  function renderPreview() {
+    var res = core.buildInvoice(input(), settings, Date.now());
+    paintErrors(res.errors);
+    if (res.ok) {
+      lastModel = res.model;
+      $('invoicePreview').innerHTML = core.invoiceHtml(res.model);
+    }
+    return res;
+  }
+
+  function scrollPreview() {
+    var el = $('invoicePreview');
+    try { if (el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+  }
+
+  function slug(s) {
+    return core.trim(s).replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'khach';
+  }
+
+  function safeName(s) {
+    return core.trim(s).replace(/[\\\/:*?"<>|]+/g, '');
+  }
+
+  /* =================== in / xuất =================== */
+  function validateOrWarn() {
+    var res = renderPreview();
+    if (res.ok) { showErrors = false; paintErrors({}); return res; }
+    showErrors = true;
+    renderPreview();
+    toast('⚠️ ' + firstError(res.errors));
+    return res;
+  }
+
+  function issue(res) {
+    var model = res.model;
+    model.no = nextNo();
+    lastModel = model;
+    $('invoicePreview').innerHTML = core.invoiceHtml(model);
+    list = core.addHistory(list, model, Date.now());
+    saveList();
+    renderList();
+    return model;
+  }
+
+  function doPrint() {
+    var res = validateOrWarn();
+    if (!res.ok) return;
+    issue(res);
+    try { window.print(); } catch (e) { toast('⚠️ Trình duyệt không hỗ trợ in'); }
+  }
+
+  function doWord() {
+    var res = validateOrWarn();
+    if (!res.ok) return;
+    var model = issue(res);
+    var html = core.buildDocHtml(model);
+    var blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'hoa-don-' + safeName(model.no) + '-' + slug(model.customer.name) + '.doc';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      try { URL.revokeObjectURL(a.href); } catch (e) {}
+      if (a.parentNode) a.parentNode.removeChild(a);
+    }, 1500);
+    toast('✅ Đã xuất file Word: ' + a.download);
+  }
+
+  function doNew() {
+    $('f-name').value = '';
+    $('f-phone').value = '';
+    $('f-product').value = '';
+    $('f-imei').value = '';
+    $('f-price').value = '';
+    $('f-months').value = '12';
+    $('f-date').value = todayStr();
+    $('f-note').value = '';
+    showErrors = false;
+    paintErrors({});
+    lastModel = null;
+    $('invoicePreview').innerHTML = '<div class="empty">Nhập thông tin bên trên — hoá đơn tự cập nhật từng giây</div>';
+    try { $('f-name').focus(); } catch (e) {}
+    toast('✨ Đã tạo form mới');
+  }
+
+  /* =================== lịch sử =================== */
+  function renderList() {
+    var box = $('hdList');
+    if (!list.length) {
+      box.innerHTML = '<div class="empty">Chưa có hoá đơn nào được in/xuất</div>';
+      return;
+    }
+    box.innerHTML = list.map(function (x, i) {
+      return '<div class="hd-row" data-i="' + i + '">' +
+        '<div class="hd-main"><b>' + core.esc(x.customer && x.customer.name) + ' — ' +
+        core.esc(x.product && x.product.name) + '</b>' +
+        '<span class="hd-sub">' + core.esc(x.no) + ' · ' + core.formatDateVN(x.ts, true) +
+        (x.product && x.product.imei ? ' · IMEI ' + core.esc(x.product.imei) : '') +
+        '</span></div>' +
+        '<span class="hd-amt">' + core.formatMoney(x.total) + '₫</span>' +
+        '<button class="hd-btn" data-act="view">Xem</button>' +
+        '<button class="hd-btn danger" data-act="del">Xóa</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function wireList() {
+    $('hdList').addEventListener('click', function (ev) {
+      var btn = ev.target;
+      while (btn && btn !== this && !btn.getAttribute('data-act')) btn = btn.parentNode;
+      if (!btn || btn === this) return;
+      var row = btn;
+      while (row && row !== this && !row.getAttribute('data-i')) row = row.parentNode;
+      if (!row || row === this) return;
+      var item = list[Number(row.getAttribute('data-i'))];
+      if (!item) return;
+      var act = btn.getAttribute('data-act');
+      if (act === 'del') {
+        if (!btn.getAttribute('data-confirm')) {
+          btn.setAttribute('data-confirm', '1');
+          btn.textContent = 'Xóa thật?';
+          return;
+        }
+        list.splice(Number(row.getAttribute('data-i')), 1);
+        saveList();
+        renderList();
+        toast('🗑 Đã xóa hoá đơn ' + item.no);
+      } else {
+        lastModel = item.model;
+        $('invoicePreview').innerHTML = core.invoiceHtml(item.model);
+        scrollPreview();
+      }
+    });
+  }
+
+  /* =================== cài đặt mẫu =================== */
+  function wireSettings() {
+    var map = {
+      's-shop': 'shopName', 's-tel': 'phone', 's-addr': 'address',
+      's-thanks': 'thanks', 's-terms': 'terms'
+    };
+    for (var id in map) {
+      (function (el, key) {
+        if (!el) return;
+        el.value = settings[key] || '';
+        el.addEventListener('input', function () {
+          settings[key] = core.trim(el.value) || core.DEFAULT_SETTINGS[key];
+          saveSettings();
+          renderPreview();
+        });
+      })($(id), map[id]);
+    }
+  }
+
+  /* =================== init =================== */
+  function init() {
+    $('f-months').value = '12';
+    $('f-date').value = todayStr();
+
+    Object.keys(FIELD_IDS).forEach(function (k) {
+      var el = $(FIELD_IDS[k]);
+      if (!el) return;
+      el.addEventListener('input', function () {
+        if (showErrors) renderPreview();
+        else renderPreview();
+      });
+      el.addEventListener('blur', function () {
+        showErrors = true;
+        renderPreview();
+      });
+    });
+
+    $('btn-print').addEventListener('click', doPrint);
+    $('btn-word').addEventListener('click', doWord);
+    $('btn-new').addEventListener('click', doNew);
+
+    wireList();
+    wireSettings();
+    renderList();
+    renderPreview();
+  }
+
+  init();
+
+  /* =================== test hooks =================== */
+  window.__HoaDon = {
+    get settings() { return settings; },
+    get list() { return list; },
+    get lastModel() { return lastModel; },
+    get seq() { return seq; },
+    get showErrors() { return showErrors; },
+    input: input,
+    todayStr: todayStr,
+    build: function () { return core.buildInvoice(input(), settings, Date.now()); },
+    renderPreview: renderPreview,
+    doPrint: doPrint,
+    doWord: doWord,
+    doNew: doNew,
+    toastText: function () { return $('toast').textContent; }
+  };
+})();
+</script>
+</body>
+</html>

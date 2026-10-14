@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Hậu Stores · Tạo hoá đơn</title>
-<style>/* Hậu Stores · Hoá đơn — offline */
+<title>Hậu Store · Tạo hoá đơn</title>
+<style>/* Hậu Store · Hoá đơn — offline, in 1 mặt A5 */
 :root {
   --ink: #1c1e26;
   --muted: #6b7280;
@@ -50,7 +50,7 @@ h2 .hint { font-size: 12px; color: var(--muted); font-weight: 400; }
 @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
 .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
 .req { color: var(--warn); }
-.field input {
+.field input, .field textarea {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -58,9 +58,11 @@ h2 .hint { font-size: 12px; color: var(--muted); font-weight: 400; }
   font-size: 16px;
   background: #fff;
   color: var(--ink);
+  font-family: inherit;
+  resize: vertical;
 }
-.field input:focus { outline: 2px solid rgba(53,86,201,0.25); border-color: var(--accent); }
-.field input.err { border-color: var(--warn); background: #fff5f3; }
+.field input:focus, .field textarea:focus { outline: 2px solid rgba(53,86,201,0.25); border-color: var(--accent); }
+.field input.err, .field textarea.err { border-color: var(--warn); background: #fff5f3; }
 .actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 button {
   border: 0; border-radius: 10px;
@@ -74,29 +76,45 @@ button.success { background: var(--ok); flex: 1; min-width: 150px; }
 button.ghost { background: #e8eaef; color: var(--ink); }
 button:active { transform: translateY(1px); }
 
-/* ================= hoá đơn (preview + in + Word) ================= */
+/* ================= hoá đơn (preview + in + Word) — A5 ================= */
 .inv-preview { background: #fff; }
 .empty { color: var(--muted); font-size: 14px; text-align: center; padding: 18px 6px; }
 
-.inv { max-width: 720px; margin: 0 auto; color: #000; background: #fff; }
+.inv {
+  max-width: 148mm;      /* đúng khổ giấy A5 khi xem trước */
+  margin: 0 auto;
+  color: #000;
+  background: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8.5pt;
+  line-height: 1.35;
+}
 .inv-head { text-align: center; }
-.inv-shop { font-size: 24px; font-weight: 800; letter-spacing: 1px; }
-.inv-line-sm { font-size: 12px; color: #333; }
-.inv-title { font-size: 18px; font-weight: 700; margin: 6px 0 2px; }
-.inv-meta { text-align: right; font-size: 12px; margin-bottom: 8px; }
+.inv-shop { font-size: 15pt; font-weight: 800; letter-spacing: 0.5px; }
+.inv-line-sm { font-size: 7.5pt; color: #222; }
+.inv-title { font-size: 12pt; font-weight: 700; margin: 3px 0; }
 table { border-collapse: collapse; width: 100%; }
-.inv-info th, .inv-info td { border: 1px solid #000; padding: 6px 8px; font-size: 14px; text-align: left; }
-.inv-info th { width: 110px; background: #f4f4f4; }
-.inv-items th, .inv-items td { border: 1px solid #000; padding: 6px 8px; font-size: 13px; }
-.inv-items th { background: #f4f4f4; }
+.inv-info3 td { border: 1px solid #000; padding: 3px 5px; font-size: 7.5pt; vertical-align: top; width: 33.33%; }
+.inv-items th, .inv-items td { border: 1px solid #000; padding: 3px 5px; font-size: 8pt; }
+.inv-items th { background: #f1f1f1; }
 .inv-items .c { text-align: center; }
 .inv-items .r { text-align: right; }
-.inv-total td { font-size: 14px; }
-.inv-words td, .inv-note td { padding: 6px 8px; font-size: 13px; }
-.inv-terms { margin-top: 10px; font-size: 12px; color: #222; }
-.inv-thanks { margin-top: 6px; font-size: 12px; font-style: italic; }
-.inv-sign { margin-top: 30px; }
-.inv-sign td { width: 50%; text-align: center; vertical-align: top; height: 72px; font-size: 13px; }
+.inv-sub { font-size: 7pt; color: #333; }
+.inv-note td { font-size: 7.5pt; }
+.inv-sums { width: 56%; margin-left: 44%; margin-top: 3px; }
+.inv-sums td { font-size: 8.5pt; padding: 1px 4px; }
+.inv-sums .r { text-align: right; }
+.inv-grand td { border-top: 1px solid #000; }
+.inv-terms { margin-top: 5px; font-size: 6.8pt; line-height: 1.3; }
+.inv-agree { margin-top: 3px; font-size: 6.8pt; font-style: italic; }
+.inv-sign3 { margin-top: 10px; }
+.inv-sign3 td {
+  width: 33.33%; text-align: center; vertical-align: top;
+  height: 54px; font-size: 7.5pt; padding-top: 2px;
+}
+.sig-note { font-size: 6.5pt; color: #333; }
+.sig-fill { margin-top: 28px; font-size: 7pt; }
+.inv-thanks { text-align: center; margin-top: 5px; font-size: 7.5pt; font-style: italic; }
 
 /* ================= lịch sử ================= */
 .hd-row {
@@ -129,7 +147,7 @@ table { border-collapse: collapse; width: 100%; }
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* ================= PRINT: chỉ in khu vực hoá đơn ================= */
+/* ================= PRINT: 1 mặt A5, chỉ in khu vực hoá đơn ================= */
 @media print {
   .no-print { display: none !important; }
   body { background: #fff; }
@@ -137,14 +155,14 @@ table { border-collapse: collapse; width: 100%; }
   .card { box-shadow: none; border-radius: 0; padding: 0; }
   .card h2 { display: none; }
   #printArea { display: block !important; }
-  .inv { max-width: none; }
+  .inv { max-width: none; font-size: 8.5pt; }
 }
-@page { size: A4; margin: 14mm 16mm; }
+@page { size: A5; margin: 7mm 8mm; }
 </style>
 </head>
 <body>
 <header class="topbar no-print">
-  <div class="brand">🧾 Hậu Stores · Tạo hoá đơn <span class="badge">Offline</span></div>
+  <div class="brand">🧾 Hậu Store · Tạo hoá đơn <span class="badge">Offline · A5</span></div>
 </header>
 
 <main id="appRoot">
@@ -161,6 +179,14 @@ table { border-collapse: collapse; width: 100%; }
         <input id="f-phone" type="tel" maxlength="14" placeholder="0909 123 456" autocomplete="off">
       </div>
       <div class="field">
+        <label>Địa chỉ khách</label>
+        <input id="f-addr" type="text" maxlength="120" placeholder="12 Lê Duẩn, Hải Châu" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>NV bán hàng</label>
+        <input id="f-staff" type="text" maxlength="60" placeholder="Tên nhân viên" autocomplete="off">
+      </div>
+      <div class="field">
         <label>Tên sản phẩm / mẫu máy <span class="req">*</span></label>
         <input id="f-product" type="text" maxlength="120" placeholder="iPhone 13 Pro 128GB" autocomplete="off">
       </div>
@@ -173,6 +199,10 @@ table { border-collapse: collapse; width: 100%; }
         <input id="f-price" type="text" inputmode="numeric" placeholder="5200000" autocomplete="off">
       </div>
       <div class="field">
+        <label>Giảm giá (₫)</label>
+        <input id="f-discount" type="text" inputmode="numeric" placeholder="0" autocomplete="off">
+      </div>
+      <div class="field">
         <label>Bảo hành (tháng)</label>
         <input id="f-months" type="number" min="0" max="60" step="1" value="12">
       </div>
@@ -180,21 +210,22 @@ table { border-collapse: collapse; width: 100%; }
         <label>Ngày mua</label>
         <input id="f-date" type="date">
       </div>
-      <div class="field">
+      <div class="field" style="grid-column:1/-1">
         <label>Ghi chú</label>
         <input id="f-note" type="text" maxlength="500" placeholder="Kèm sạc, dán màn hình..." autocomplete="off">
       </div>
     </div>
     <div class="actions">
-      <button id="btn-print" class="primary">🖨 In / Lưu PDF</button>
+      <button id="btn-print" class="primary">🖨 In / Lưu PDF (A5)</button>
       <button id="btn-word" class="success">📄 Xuất Word (.doc)</button>
       <button id="btn-new" class="ghost">✨ Tạo mới</button>
     </div>
+    <div class="foot-note">Máy in: chọn khổ <b>A5</b>, một mặt — là vừa đúng trang.</div>
   </section>
 
   <!-- ============ PREVIEW (khu vực in) ============ -->
   <section class="card">
-    <h2 class="no-print">Xem trước hoá đơn <span class="hint">(khu vực in / xuất Word)</span></h2>
+    <h2 class="no-print">Xem trước hoá đơn <span class="hint">(khổ A5 1 mặt — khu vực in / xuất Word)</span></h2>
     <div id="printArea">
       <div id="invoicePreview" class="inv-preview"><div class="empty">Nhập thông tin bên trên — hoá đơn tự cập nhật từng giây</div></div>
     </div>
@@ -212,23 +243,27 @@ table { border-collapse: collapse; width: 100%; }
     <div class="grid2">
       <div class="field">
         <label>Tên cửa hàng</label>
-        <input id="s-shop" type="text" maxlength="160" placeholder="HẬU STORES">
+        <input id="s-shop" type="text" maxlength="160" placeholder="HẬU STORE">
+      </div>
+      <div class="field">
+        <label>Slogan</label>
+        <input id="s-slogan" type="text" maxlength="160" placeholder="Phụ kiện điện thoại di động">
+      </div>
+      <div class="field">
+        <label>Địa chỉ cửa hàng</label>
+        <input id="s-addr" type="text" maxlength="160" placeholder="75 Hoàng Hoa Thám">
       </div>
       <div class="field">
         <label>SĐT cửa hàng</label>
-        <input id="s-tel" type="text" maxlength="160" placeholder="0909 000 000">
-      </div>
-      <div class="field">
-        <label>Địa chỉ</label>
-        <input id="s-addr" type="text" maxlength="160" placeholder="123 Lê Duẩn, Đà Nẵng">
+        <input id="s-tel" type="text" maxlength="160" placeholder="0862 468 911">
       </div>
       <div class="field">
         <label>Lời cảm ơn</label>
         <input id="s-thanks" type="text" maxlength="160">
       </div>
-      <div class="field" style="grid-column:1/-1">
-        <label>Điều khoản bảo hành</label>
-        <input id="s-terms" type="text" maxlength="160">
+      <div class="field">
+        <label>Điều khoản bảo hành (1 dòng = 1 mục)</label>
+        <textarea id="s-terms" rows="4" maxlength="500"></textarea>
       </div>
     </div>
     <div class="foot-note">Muốn về mặc định: xoá dữ liệu trình duyệt hoặc mở app ở chế độ ẩn danh rồi vào lại.</div>
@@ -238,8 +273,8 @@ table { border-collapse: collapse; width: 100%; }
 <div id="toast" class="toast"></div>
 
 <script>/*
- * Hậu Stores — Tạo hoá đơn (offline) · logic thuần, không DOM.
- * UMD: AMD/CommonJS/global.
+ * Hậu Store — Tạo hoá đơn (offline) · layout theo mẫu shop, in 1 mặt A5.
+ * Logic thuần, không DOM. UMD: AMD/CommonJS/global.
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
@@ -248,23 +283,33 @@ table { border-collapse: collapse; width: 100%; }
     root.HoaDon = factory();
   }
 })(typeof self !== 'undefined' ? self : this, function () {
-  var VERSION = 1;
+  var VERSION = 2;
   var MAX_NAME = 60;
   var MAX_PRODUCT = 120;
+  var MAX_ADDRESS = 120;
   var MAX_IMEI = 32;
   var MAX_NOTE = 500;
-  var MAX_SETTINGS_TEXT = 160;
+  var MAX_SETTINGS_TEXT = 500;
   var LS_SETTINGS = 'haustore_hoadon_settings_v1';
   var LS_LIST = 'haustore_hoadon_list_v1';
   var LS_SEQ = 'haustore_hoadon_seq_v1';
   var MAX_HISTORY = 200;
 
   var DEFAULT_SETTINGS = {
-    shopName: 'HẬU STORES',
-    address: '',
-    phone: '',
-    terms: 'Máy bảo hành theo tem của cửa hàng. Lỗi phần mềm và ngoại hình không nằm trong diện bảo hành.',
-    thanks: 'Cảm ơn quý khách đã tin tưởng và ủng hộ Hậu Stores!'
+    shopName: 'HẬU STORE',
+    slogan: 'Phụ kiện điện thoại di động',
+    address: '75 Hoàng Hoa Thám',
+    phone: '0862 468 911',
+    terms: [
+      '✦ Bảo hành: Lỗi nhà sản xuất theo thời gian ghi trên phiếu',
+      '✦ Đổi mới trong 7 ngày đầu nếu lỗi nhà sản xuất (còn nguyên hộp, phụ kiện)',
+      '✦ Không bảo hành: va đập, rơi vỡ, nước, cháy nổ, tự ý sửa chữa, hết hạn',
+      '✦ Phụ kiện đã mở/không còn nguyên seal không áp dụng đổi',
+      '✦ Đổi hoặc bảo hành: mang theo hóa đơn + sản phẩm còn nguyên trạng',
+      '✦ Sản phẩm đã bán không hoàn tiền, chỉ đổi theo quy định trên',
+      '✦ Liên hệ hotline 0862 468 911 hoặc ghé cửa hàng để được hỗ trợ'
+    ].join('\n'),
+    thanks: 'Cảm ơn quý khách đã mua hàng tại Hậu Store! 🎉'
   };
 
   function trim(s) {
@@ -311,7 +356,7 @@ table { border-collapse: collapse; width: 100%; }
     return target.getTime();
   }
 
-  /* Hạn bảo hành = ngày mua + n tháng (mặc định 00:00 giờ máy) */
+  /* Hạn bảo hành = ngày mua + n tháng */
   function warrantyUntil(purchaseMs, months) {
     return addMonths(purchaseMs, Number(months) || 0);
   }
@@ -371,7 +416,8 @@ table { border-collapse: collapse; width: 100%; }
 
   /* ---------------- validate + build model ---------------- */
   /*
-   * input: { name, phone, product, imei, price, months, purchaseDate, note }
+   * input: { name, phone, address, product, imei, price, discount,
+   *          months, purchaseDate, staff, note }
    * purchaseDate: 'YYYY-MM-DD'
    */
   function buildInvoice(input, settings, nowMs) {
@@ -390,6 +436,9 @@ table { border-collapse: collapse; width: 100%; }
     if (!phone) errors.phone = 'Nhập số điện thoại';
     else if (!/^\d{9,11}$/.test(phone)) errors.phone = 'SĐT không hợp lệ (9–11 số)';
 
+    var custAddress = trim(input.address);
+    if (custAddress.length > MAX_ADDRESS) errors.address = 'Địa chỉ quá dài';
+
     var product = trim(input.product);
     if (!product) errors.product = 'Nhập tên sản phẩm / mẫu máy';
     else if (product.length > MAX_PRODUCT) errors.product = 'Tên sản phẩm quá dài';
@@ -399,6 +448,18 @@ table { border-collapse: collapse; width: 100%; }
 
     var price = parseMoney(input.price);
     if (isNaN(price) || price < 0) errors.price = 'Nhập giá bán (số, ví dụ 5200000)';
+
+    var discount = 0;
+    if (trim(input.discount)) {
+      discount = parseMoney(input.discount);
+      if (isNaN(discount) || discount < 0) {
+        errors.discount = 'Giảm giá không hợp lệ';
+        discount = 0;
+      } else if (!isNaN(price) && discount > price) {
+        errors.discount = 'Giảm giá lớn hơn giá bán';
+        discount = 0;
+      }
+    }
 
     var months = input.months === '' || input.months == null ? 0 : Number(input.months);
     if (!isFinite(months) || months < 0 || months > 60 || Math.floor(months) !== months) {
@@ -420,6 +481,9 @@ table { border-collapse: collapse; width: 100%; }
       purchaseMs = d0.getTime();
     }
 
+    var staff = trim(input.staff);
+    if (staff.length > MAX_NAME) errors.staff = 'Tên NV bán hàng quá dài';
+
     var note = trim(input.note);
     if (note.length > MAX_NOTE) errors.note = 'Ghi chú quá dài';
 
@@ -429,16 +493,19 @@ table { border-collapse: collapse; width: 100%; }
     var model = null;
     if (ok) {
       var until = warrantyUntil(purchaseMs, months);
+      var total = price - discount;
       model = {
         version: VERSION,
         shopName: s.shopName,
+        slogan: s.slogan,
         address: s.address,
         phone: s.phone,
         terms: s.terms,
         thanks: s.thanks,
         no: invoiceNumber(now, 1),
         dateLabel: formatDateVN(now, true),
-        customer: { name: trim(input.name), phone: phone },
+        staff: staff,
+        customer: { name: trim(input.name), phone: phone, address: custAddress },
         product: {
           name: product,
           imei: imei,
@@ -446,8 +513,10 @@ table { border-collapse: collapse; width: 100%; }
           months: months,
           untilLabel: formatDateVN(until, false)
         },
-        total: price,
-        words: amountToWords(price),
+        subtotal: price,
+        discount: discount,
+        total: total,
+        words: amountToWords(total),
         note: note
       };
     }
@@ -455,71 +524,117 @@ table { border-collapse: collapse; width: 100%; }
     return { ok: ok, errors: errors, model: model };
   }
 
-  /* ---------------- HTML hoá đơn (dùng cho preview, in, Word) ---------------- */
+  /* ---------------- HTML hoá đơn (preview, in, Word) — 1 mặt A5 ---------------- */
   function invoiceHtml(model) {
+    model = model || {};
+    var cust = model.customer || {};
+    var prod = model.product || {};
+    var subtotal = model.subtotal != null ? model.subtotal : (prod.price || 0);
+    var discount = Number(model.discount) || 0;
+    var total = model.total != null ? model.total : subtotal;
+
     var h = [];
     h.push('<div class="inv">');
+
+    /* --- đầu trang --- */
     h.push('<div class="inv-head">');
     h.push('<div class="inv-shop">' + esc(model.shopName) + '</div>');
-    if (model.address) h.push('<div class="inv-line-sm">' + esc(model.address) + '</div>');
-    if (model.phone) h.push('<div class="inv-line-sm">SĐT: ' + esc(model.phone) + '</div>');
-    h.push('<div class="inv-title">HOÁ ĐƠN BÁN HÀNG</div>');
-    h.push('<div class="inv-meta">Số: <b>' + esc(model.no) + '</b> &nbsp;·&nbsp; Ngày: ' + esc(model.dateLabel) + '</div>');
+    var line = [];
+    if (model.address) line.push('📍 ' + esc(model.address));
+    if (model.phone) line.push('📞 ' + esc(model.phone));
+    if (model.slogan) line.push('🏪 ' + esc(model.slogan));
+    if (line.length) h.push('<div class="inv-line-sm">' + line.join(' &nbsp;|&nbsp; ') + '</div>');
+    h.push('<div class="inv-title">HÓA ĐƠN BÁN HÀNG</div>');
     h.push('</div>');
 
-    h.push('<table class="inv-info">');
-    h.push('<tr><th>Khách hàng</th><td>' + esc(model.customer.name) + '</td>' +
-      '<th>Số điện thoại</th><td>' + esc(model.customer.phone) + '</td></tr>');
-    h.push('</table>');
+    /* --- 3 khối thông tin --- */
+    h.push('<table class="inv-info3"><tr>');
+    h.push('<td><b>THÔNG TIN CỬA HÀNG</b><br>' + esc(model.shopName) +
+      (model.address ? '<br>Địa chỉ: ' + esc(model.address) : '') +
+      (model.phone ? '<br>ĐT: ' + esc(model.phone) : '') + '</td>');
+    h.push('<td><b>THÔNG TIN HÓA ĐƠN</b><br>Số HĐ: ' + esc(model.no) +
+      '<br>Ngày: ' + esc(model.dateLabel) +
+      '<br>NV bán hàng: ' + (model.staff ? esc(model.staff) : '___________') + '</td>');
+    h.push('<td><b>THÔNG TIN KHÁCH HÀNG</b><br>Tên: ' + esc(cust.name) +
+      '<br>Địa chỉ: ' + (cust.address ? esc(cust.address) : '___________') +
+      '<br>ĐT: ' + esc(cust.phone) + '</td>');
+    h.push('</tr></table>');
+
+    /* --- bảng hàng --- */
+    var sub = [];
+    if (prod.imei) sub.push('IMEI: ' + esc(prod.imei));
+    if (prod.months > 0) sub.push('BH: ' + prod.months + ' tháng (đến ' + esc(prod.untilLabel) + ')');
+    else if (prod.untilLabel) sub.push('Hạn BH: ' + esc(prod.untilLabel));
 
     h.push('<table class="inv-items">');
-    h.push('<tr><th class="c">STT</th><th>Sản phẩm</th><th>IMEI</th><th class="c">Bảo hành</th>' +
-      '<th class="c">Hạn bảo hành</th><th class="r">Đơn giá</th><th class="r">Thành tiền</th></tr>');
-    h.push('<tr><td class="c">1</td><td>' + esc(model.product.name) + '</td><td>' +
-      (model.product.imei ? esc(model.product.imei) : '—') + '</td><td class="c">' +
-      model.product.months + ' tháng</td><td class="c">' + esc(model.product.untilLabel) +
-      '</td><td class="r">' + formatMoney(model.product.price) + '₫</td><td class="r">' +
-      formatMoney(model.total) + '₫</td></tr>');
-    h.push('<tr class="inv-total"><td colspan="6" class="r"><b>Tổng cộng</b></td><td class="r"><b>' +
-      formatMoney(model.total) + '₫</b></td></tr>');
-    h.push('<tr class="inv-words"><td colspan="7"><i>Bằng chữ: ' + esc(model.words) + '</i></td></tr>');
-    if (model.note) {
-      h.push('<tr class="inv-note"><td colspan="7"><b>Ghi chú:</b> ' + esc(model.note) + '</td></tr>');
+    h.push('<tr><th class="c">STT</th><th>TÊN HÀNG HÓA / DỊCH VỤ</th>' +
+      '<th class="c">SL</th><th class="r">ĐƠN GIÁ (₫)</th><th class="r">THÀNH TIỀN (₫)</th></tr>');
+    h.push('<tr><td class="c">1</td><td>' + esc(prod.name) +
+      (sub.length ? '<div class="inv-sub">' + sub.join(' &nbsp;·&nbsp; ') + '</div>' : '') +
+      '</td><td class="c">1</td><td class="r">' + formatMoney(prod.price) +
+      '</td><td class="r">' + formatMoney(subtotal) + '</td></tr>');
+    h.push('<tr class="inv-note"><td class="c"><b>GHI CHÚ</b></td><td colspan="4">' +
+      (model.note ? esc(model.note) : '') + '</td></tr>');
+    h.push('</table>');
+
+    /* --- cộng tiền --- */
+    h.push('<table class="inv-sums">');
+    h.push('<tr><td>Tạm tính:</td><td class="r">' + formatMoney(subtotal) + ' ₫</td></tr>');
+    if (discount > 0) {
+      h.push('<tr><td>Giảm giá:</td><td class="r">− ' + formatMoney(discount) + ' ₫</td></tr>');
     }
+    h.push('<tr class="inv-grand"><td><b>TỔNG CỘNG:</b></td><td class="r"><b>' +
+      formatMoney(total) + ' ₫</b></td></tr>');
+    h.push('<tr><td colspan="2"><i>Bằng chữ: ' + esc(model.words || amountToWords(total)) + '</i></td></tr>');
     h.push('</table>');
 
-    h.push('<div class="inv-terms">' + esc(model.terms) + '</div>');
+    /* --- quy định bảo hành --- */
+    h.push('<div class="inv-terms"><b>QUY ĐỊNH BẢO HÀNH &amp; ĐỔI MÁY</b>');
+    String(model.terms || '').split('\n').forEach(function (t) {
+      if (trim(t)) h.push('<div class="inv-td">' + esc(t) + '</div>');
+    });
+    h.push('<div class="inv-agree">Tôi đã được tư vấn và đồng ý với điều khoản mua hàng, ' +
+      'quy định bảo hành &amp; đổi máy của ' + esc(model.shopName) + '</div>');
+    h.push('</div>');
+
+    /* --- 3 ô ký --- */
+    h.push('<table class="inv-sign3"><tr>');
+    h.push('<td><b>KHÁCH HÀNG</b><div class="sig-note">(Ký, ghi rõ họ tên)</div>' +
+      '<div class="sig-fill">Tên: ' + esc(cust.name) + '</div></td>');
+    h.push('<td><b>NHÂN VIÊN BÁN HÀNG</b><div class="sig-note">(Ký, ghi rõ họ tên)</div>' +
+      '<div class="sig-fill">Tên: ' + (model.staff ? esc(model.staff) : '') + '</div></td>');
+    h.push('<td><b>XÁC NHẬN CỦA CỬA HÀNG</b><div class="sig-note">(Dấu / chữ ký đại diện)</div>' +
+      '<div class="sig-fill">' + esc(model.shopName) + '</div></td>');
+    h.push('</tr></table>');
+
     h.push('<div class="inv-thanks">' + esc(model.thanks) + '</div>');
-
-    h.push('<table class="inv-sign">');
-    h.push('<tr><td class="t"><b>Người bán</b></td><td class="t"><b>Người mua</b></td></tr>');
-    h.push('<tr><td class="sp"></td><td class="sp"></td></tr>');
-    h.push('</table>');
     h.push('</div>');
     return h.join('');
   }
 
-  /* ---------------- Word (.doc) wrapper ---------------- */
+  /* ---------------- Word (.doc) — khổ A5 ---------------- */
   var DOC_CSS = [
-    'body{font-family:"Times New Roman",serif;font-size:13pt;color:#000;}',
-    '.inv{max-width:100%;}',
+    'body{font-family:Arial,Helvetica,sans-serif;font-size:8.5pt;color:#000;}',
     '.inv-head{text-align:center;}',
-    '.inv-shop{font-size:20pt;font-weight:bold;}',
-    '.inv-line-sm{font-size:10.5pt;}',
-    '.inv-title{font-size:16pt;font-weight:bold;margin:6pt 0;text-transform:uppercase;}',
-    '.inv-meta{text-align:right;font-size:10.5pt;}',
+    '.inv-shop{font-size:15pt;font-weight:bold;}',
+    '.inv-line-sm{font-size:7.5pt;}',
+    '.inv-title{font-size:12pt;font-weight:bold;margin:3pt 0;}',
     'table{border-collapse:collapse;width:100%;}',
-    '.inv-info th,.inv-info td{border:1px solid #000;padding:5px 8px;font-size:12pt;}',
-    '.inv-info th{width:110px;}',
-    '.inv-items th,.inv-items td{border:1px solid #000;padding:5px 8px;font-size:12pt;}',
-    '.c{text-align:center;}.r{text-align:right;}.t{text-align:center;}',
-    '.inv-total td{font-size:13pt;}',
-    '.inv-words td{border:1px solid #000;padding:5px 8px;}',
-    '.inv-note td{border:1px solid #000;padding:5px 8px;}',
-    '.inv-terms{margin-top:10px;font-size:11pt;}',
-    '.inv-thanks{margin-top:6px;font-size:11pt;font-style:italic;}',
-    '.inv-sign{margin-top:26px;width:100%;}',
-    '.inv-sign td{width:50%;text-align:center;vertical-align:top;height:70px;}'
+    '.inv-info3 td{border:1px solid #000;padding:3px 5px;font-size:7.5pt;vertical-align:top;width:33%;}',
+    '.inv-items th,.inv-items td{border:1px solid #000;padding:3px 5px;font-size:8pt;}',
+    '.inv-sub{font-size:7pt;color:#333;}',
+    '.c{text-align:center;}.r{text-align:right;}',
+    '.inv-note td{font-size:7.5pt;}',
+    '.inv-sums{width:56%;margin-left:44%;margin-top:3pt;}',
+    '.inv-sums td{font-size:8.5pt;padding:1px 4px;}',
+    '.inv-terms{margin-top:5pt;font-size:6.8pt;line-height:1.3;}',
+    '.inv-td{}',
+    '.inv-agree{margin-top:3pt;font-size:6.8pt;font-style:italic;}',
+    '.inv-sign3{margin-top:10pt;}',
+    '.inv-sign3 td{width:33.3%;text-align:center;vertical-align:top;height:52px;font-size:7.5pt;}',
+    '.sig-note{font-size:6.5pt;color:#333;}',
+    '.sig-fill{margin-top:26pt;font-size:7pt;}',
+    '.inv-thanks{text-align:center;margin-top:5pt;font-size:7.5pt;font-style:italic;}'
   ].join('\n');
 
   function buildDocHtml(model) {
@@ -527,7 +642,7 @@ table { border-collapse: collapse; width: 100%; }
       'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
       '<head><meta charset="utf-8"><title>Hoa don ' + esc(model.no) + '</title>' +
       '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->' +
-      '<style>@page{size:21cm 29.7cm;margin:1.4cm 1.6cm;}\n' + DOC_CSS + '</style></head><body>' +
+      '<style>@page{size:14.8cm 21cm;margin:0.7cm 0.8cm;}\n' + DOC_CSS + '</style></head><body>' +
       invoiceHtml(model) + '</body></html>';
   }
 
@@ -561,6 +676,7 @@ table { border-collapse: collapse; width: 100%; }
     VERSION: VERSION,
     MAX_NAME: MAX_NAME,
     MAX_PRODUCT: MAX_PRODUCT,
+    MAX_ADDRESS: MAX_ADDRESS,
     MAX_IMEI: MAX_IMEI,
     MAX_NOTE: MAX_NOTE,
     MAX_SETTINGS_TEXT: MAX_SETTINGS_TEXT,
@@ -640,8 +756,9 @@ table { border-collapse: collapse; width: 100%; }
 
   /* =================== helpers =================== */
   var FIELD_IDS = {
-    name: 'f-name', phone: 'f-phone', product: 'f-product', imei: 'f-imei',
-    price: 'f-price', months: 'f-months', purchaseDate: 'f-date', note: 'f-note'
+    name: 'f-name', phone: 'f-phone', address: 'f-addr', staff: 'f-staff',
+    product: 'f-product', imei: 'f-imei', price: 'f-price', discount: 'f-discount',
+    months: 'f-months', purchaseDate: 'f-date', note: 'f-note'
   };
 
   function todayStr() {
@@ -668,9 +785,12 @@ table { border-collapse: collapse; width: 100%; }
     return {
       name: $('f-name').value,
       phone: $('f-phone').value,
+      address: $('f-addr').value,
+      staff: $('f-staff').value,
       product: $('f-product').value,
       imei: $('f-imei').value,
       price: $('f-price').value,
+      discount: $('f-discount').value,
       months: $('f-months').value,
       purchaseDate: $('f-date').value,
       note: $('f-note').value
@@ -756,9 +876,12 @@ table { border-collapse: collapse; width: 100%; }
   function doNew() {
     $('f-name').value = '';
     $('f-phone').value = '';
+    $('f-addr').value = '';
+    $('f-staff').value = '';
     $('f-product').value = '';
     $('f-imei').value = '';
     $('f-price').value = '';
+    $('f-discount').value = '';
     $('f-months').value = '12';
     $('f-date').value = todayStr();
     $('f-note').value = '';
@@ -823,7 +946,7 @@ table { border-collapse: collapse; width: 100%; }
   /* =================== cài đặt mẫu =================== */
   function wireSettings() {
     var map = {
-      's-shop': 'shopName', 's-tel': 'phone', 's-addr': 'address',
+      's-shop': 'shopName', 's-slogan': 'slogan', 's-tel': 'phone', 's-addr': 'address',
       's-thanks': 'thanks', 's-terms': 'terms'
     };
     for (var id in map) {
